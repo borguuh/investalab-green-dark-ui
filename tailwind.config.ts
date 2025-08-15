@@ -52,16 +52,27 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
+				// Custom crypto theme colors
+				crypto: {
+					green: 'hsl(var(--crypto-green))',
+					'green-light': 'hsl(var(--crypto-green-light))',
+					'green-dark': 'hsl(var(--crypto-green-dark))',
+					black: 'hsl(var(--crypto-black))',
+					gray: 'hsl(var(--crypto-gray))',
+					'gray-light': 'hsl(var(--crypto-gray-light))'
 				}
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-dark': 'var(--gradient-dark)',
+				'gradient-hero': 'var(--gradient-hero)'
+			},
+			boxShadow: {
+				crypto: 'var(--shadow-crypto)',
+				'crypto-dark': 'var(--shadow-dark)'
+			},
+			transitionTimingFunction: {
+				'crypto': 'var(--transition-crypto)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
