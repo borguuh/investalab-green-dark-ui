@@ -1,6 +1,11 @@
 import { TrendingUp, Twitter, Facebook, Linkedin, Github } from "lucide-react"
+import { useState } from "react"
+import { useToast } from "@/hooks/use-toast"
 
 export function Footer() {
+  const [email, setEmail] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { toast } = useToast()
   const footerSections = [
     {
       title: "Platform",
@@ -51,6 +56,44 @@ export function Footer() {
     if (id.startsWith("#")) {
       const element = document.getElementById(id.substring(1))
       element?.scrollIntoView({ behavior: "smooth" })
+    }
+  }
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim()) return
+
+    setIsSubmitting(true)
+    
+    try {
+      const response = await fetch("https://formspree.io/f/meogzgyo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          type: "newsletter_subscription"
+        }),
+      })
+
+      if (response.ok) {
+        toast({
+          title: "Subscribed!",
+          description: "Thank you for subscribing to our newsletter.",
+        })
+        setEmail("")
+      } else {
+        throw new Error("Failed to subscribe")
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to subscribe. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -118,16 +161,24 @@ export function Footer() {
             <p className="text-primary-foreground/80 mb-6">
               Get the latest crypto insights and market analysis delivered to your inbox.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
               <input
                 type="email"
                 placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="flex-1 px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-primary-foreground placeholder-primary-foreground/60 focus:outline-none focus:ring-2 focus:ring-white/30"
+                required
+                disabled={isSubmitting}
               />
-              <button className="px-6 py-2 bg-white text-primary font-medium rounded-lg hover:bg-white/90 transition-colors duration-300">
-                Subscribe
+              <button 
+                type="submit"
+                className="px-6 py-2 bg-white text-primary font-medium rounded-lg hover:bg-white/90 transition-colors duration-300 disabled:opacity-50"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Subscribing..." : "Subscribe"}
               </button>
-            </div>
+            </form>
           </div>
         </div>
 
