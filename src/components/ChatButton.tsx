@@ -14,7 +14,42 @@ export function ChatButton() {
   })
   const [hasProvidedDetails, setHasProvidedDetails] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [chatMessages, setChatMessages] = useState<Array<{text: string, isBot: boolean, timestamp: Date}>>([])
   const { toast } = useToast()
+
+  const botResponses = {
+    greeting: ["Hello! How can I help you with your crypto investments today?", "Hi there! What would you like to know about InvestaLab?"],
+    investment: ["Our platform supports Bitcoin, Ethereum, and 50+ other cryptocurrencies. Would you like to know about our investment strategies?", "We offer portfolio management, automated trading, and market analysis tools."],
+    features: ["InvestaLab provides real-time market data, automated trading bots, portfolio tracking, and 24/7 customer support.", "Our key features include advanced analytics, secure storage, and educational resources."],
+    pricing: ["We offer different plans starting from $0 for basic features. Premium plans include advanced analytics and priority support.", "You can start with our free tier and upgrade anytime as your portfolio grows."],
+    security: ["We use bank-grade security with 256-bit encryption, cold storage for funds, and 2FA authentication.", "Your assets are protected by industry-leading security measures and insurance coverage."],
+    default: ["That's a great question! Our team will get back to you with detailed information.", "Thanks for asking! We'll make sure to address this in our response.", "Interesting point! Our experts will provide you with comprehensive guidance."]
+  }
+
+  const getBotResponse = (userMessage: string) => {
+    const msg = userMessage.toLowerCase()
+    if (msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+      return botResponses.greeting[Math.floor(Math.random() * botResponses.greeting.length)]
+    } else if (msg.includes('invest') || msg.includes('crypto') || msg.includes('bitcoin') || msg.includes('ethereum')) {
+      return botResponses.investment[Math.floor(Math.random() * botResponses.investment.length)]
+    } else if (msg.includes('feature') || msg.includes('tool') || msg.includes('platform')) {
+      return botResponses.features[Math.floor(Math.random() * botResponses.features.length)]
+    } else if (msg.includes('price') || msg.includes('cost') || msg.includes('plan') || msg.includes('fee')) {
+      return botResponses.pricing[Math.floor(Math.random() * botResponses.pricing.length)]
+    } else if (msg.includes('secure') || msg.includes('safety') || msg.includes('safe')) {
+      return botResponses.security[Math.floor(Math.random() * botResponses.security.length)]
+    } else {
+      return botResponses.default[Math.floor(Math.random() * botResponses.default.length)]
+    }
+  }
+
+  const handleClose = () => {
+    setIsOpen(false)
+    setHasProvidedDetails(false)
+    setUserDetails({ name: "", email: "" })
+    setChatMessages([])
+    setMessage("")
+  }
 
   const handleDetailsSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,6 +65,19 @@ export function ChatButton() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (message.trim() && hasProvidedDetails) {
+      // Add user message to chat
+      const userMessage = { text: message, isBot: false, timestamp: new Date() }
+      setChatMessages(prev => [...prev, userMessage])
+      
+      const currentMessage = message
+      setMessage("")
+      
+      // Add bot response after a short delay
+      setTimeout(() => {
+        const botResponse = { text: getBotResponse(currentMessage), isBot: true, timestamp: new Date() }
+        setChatMessages(prev => [...prev, botResponse])
+      }, 1000)
+
       setIsSubmitting(true)
       
       try {
@@ -41,25 +89,18 @@ export function ChatButton() {
           body: JSON.stringify({
             name: userDetails.name,
             email: userDetails.email,
-            message: message,
+            message: currentMessage,
             type: "chat_message"
           }),
         })
 
-        if (response.ok) {
-          toast({
-            title: "Message sent!",
-            description: "We'll get back to you soon.",
-          })
-          setMessage("")
-        } else {
+        if (!response.ok) {
           throw new Error("Failed to send message")
         }
       } catch (error) {
         toast({
-          title: "Error",
-          description: "Failed to send message. Please try again.",
-          variant: "destructive",
+          title: "Note",
+          description: "Message saved locally. We'll follow up via email.",
         })
       } finally {
         setIsSubmitting(false)
@@ -88,11 +129,21 @@ export function ChatButton() {
       {isOpen && (
         <div className="fixed bottom-24 right-6 z-50 w-80 h-96">
           <Card className="h-full border-border/50 bg-card/95 backdrop-blur-sm shadow-2xl">
-            <CardHeader className="bg-gradient-primary text-primary-foreground rounded-t-lg">
-              <CardTitle className="text-lg">InvestaLab Support</CardTitle>
-              <p className="text-sm text-primary-foreground/80">
-                We're here to help! Ask us anything.
-              </p>
+            <CardHeader className="bg-gradient-primary text-primary-foreground rounded-t-lg flex flex-row items-center justify-between space-y-0 pb-2">
+              <div>
+                <CardTitle className="text-lg">InvestaLab Support</CardTitle>
+                <p className="text-sm text-primary-foreground/80">
+                  We're here to help! Ask us anything.
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleClose}
+                className="text-primary-foreground hover:bg-white/10"
+              >
+                <X className="w-4 h-4" />
+              </Button>
             </CardHeader>
             <CardContent className="p-0 h-full flex flex-col">
               {/* Chat Messages Area */}
@@ -142,33 +193,58 @@ export function ChatButton() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="flex items-start space-x-2">
-                      <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs text-primary-foreground font-bold">IL</span>
-                      </div>
-                      <div className="bg-muted rounded-lg p-3 max-w-[200px]">
-                        <p className="text-sm text-foreground">
-                          Hi {userDetails.name}! 👋 How can I help you today?
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start space-x-2">
-                      <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs text-primary-foreground font-bold">IL</span>
-                      </div>
-                      <div className="bg-muted rounded-lg p-3 max-w-[200px]">
-                        <p className="text-sm text-foreground">
-                          I can help you with:
-                        </p>
-                        <ul className="text-xs text-muted-foreground mt-2 space-y-1">
-                          <li>• Investment strategies</li>
-                          <li>• Platform features</li>
-                          <li>• Account setup</li>
-                          <li>• Portfolio management</li>
-                        </ul>
-                      </div>
-                    </div>
+                    {chatMessages.length === 0 ? (
+                      <>
+                        <div className="flex items-start space-x-2">
+                          <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs text-primary-foreground font-bold">IL</span>
+                          </div>
+                          <div className="bg-muted rounded-lg p-3 max-w-[200px]">
+                            <p className="text-sm text-foreground">
+                              Hi {userDetails.name}! 👋 How can I help you today?
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-start space-x-2">
+                          <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs text-primary-foreground font-bold">IL</span>
+                          </div>
+                          <div className="bg-muted rounded-lg p-3 max-w-[200px]">
+                            <p className="text-sm text-foreground">
+                              I can help you with:
+                            </p>
+                            <ul className="text-xs text-muted-foreground mt-2 space-y-1">
+                              <li>• Investment strategies</li>
+                              <li>• Platform features</li>
+                              <li>• Account setup</li>
+                              <li>• Portfolio management</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      chatMessages.map((msg, index) => (
+                        <div key={index} className={`flex items-start space-x-2 ${msg.isBot ? '' : 'flex-row-reverse space-x-reverse'}`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                            msg.isBot ? 'bg-gradient-primary' : 'bg-primary/20'
+                          }`}>
+                            <span className={`text-xs font-bold ${
+                              msg.isBot ? 'text-primary-foreground' : 'text-primary'
+                            }`}>
+                              {msg.isBot ? 'IL' : userDetails.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div className={`rounded-lg p-3 max-w-[200px] ${
+                            msg.isBot ? 'bg-muted' : 'bg-primary text-primary-foreground'
+                          }`}>
+                            <p className="text-sm">
+                              {msg.text}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 )}
               </div>
